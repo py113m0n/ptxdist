@@ -1,0 +1,90 @@
+## SECTION=multimedia_gtk
+
+menuconfig GTK
+	tristate
+	prompt "gtk+                          "
+
+	# for autogen.sh
+	select HOST_GETTEXT
+	select HOST_GOBJECT_INTROSPECTION
+
+	# core dependencies
+	select ATK
+	select CAIRO
+	select CAIRO_GOBJECT
+	select CAIRO_PDF
+	select CAIRO_PS
+	select CAIRO_SVG
+	select CAIRO_XLIB		if GTK_X11
+	select GDK_PIXBUF
+	select GLIB
+	select LIBEPOXY
+	select PANGO
+
+	# disabling xkb is broken
+	select GTK_XKB			if GTK_X11
+	select XORG_LIB_XI		if GTK_X11
+
+	select XORG_LIB_X11		if GTK_XKB
+	select XORG_LIB_X11_XKB		if GTK_XKB
+	select XORG_LIB_XEXT		if GTK_XKB
+	select XORG_LIB_XCOMPOSITE	if GTK_XCOMPOSITE
+	select XORG_LIB_XDAMAGE		if GTK_XDAMAGE
+	select XORG_LIB_XFIXES		if GTK_XFIXES
+	select XORG_LIB_XINERAMA	if GTK_XINERAMA
+	select XORG_LIB_XRANDR		if GTK_XRANDR
+
+	select LIBXKBCOMMON		if GTK_WAYLAND
+	select WAYLAND			if GTK_WAYLAND
+	select WAYLAND_PROTOCOLS	if GTK_WAYLAND
+
+	help
+	  The GTK+ is a multi-platform toolkit for creating graphical
+	  user interfaces. Offering a complete set of widgets, the GTK+
+	  is suitable for projects ranging from small one-off tools to complete
+	  application suites.
+
+if GTK
+
+config GTK_X11
+	bool
+	prompt "X11 backend"
+
+if GTK_X11
+
+config GTK_XKB
+	bool
+	prompt "XKB support"
+
+config GTK_XINERAMA
+	bool
+	prompt "Xinerama support"
+
+config GTK_XINPUT
+	bool
+	prompt "XInput support"
+
+config GTK_XRANDR
+	bool
+	prompt "XRandR support"
+
+config GTK_XFIXES
+	bool
+	prompt "XFixes support"
+
+config GTK_XCOMPOSITE
+	bool
+	prompt "X Composite support"
+
+config GTK_XDAMAGE
+	bool
+	prompt "X Damage support"
+
+endif
+
+config GTK_WAYLAND
+	bool
+	prompt "Wayland backend"
+
+endif
+

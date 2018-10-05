@@ -1,0 +1,9 @@
+## SECTION=networking
+
+config LIBQMI
+	tristate
+	select HOST_SYSTEM_PYTHON
+	select GLIB
+	prompt "libqmi"
+	help
+	  Support library to use the Qualcomm MSM Interface (QMI) protocol

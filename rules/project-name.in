@@ -1,0 +1,83 @@
+## SECTION=project_name
+#
+# rules/project-name.in
+#
+# Copyright (C) 2002-2006, 2009 by Robert Schwebel <r.schwebel@pengutronix.de>
+#
+
+comment "------------------------------------"
+
+menu "Project Name & Version        "
+
+comment "Project Name & Version        "
+
+config PROJECT_VENDOR
+	string
+	prompt "Vendor Name"
+	help
+	  Type in here your favorite vendor name. It gets displayed
+	  whenever your system starts.
+
+config PROJECT
+	string
+	prompt "Project Name"
+	help
+	  Name of this project; each PTXdist "Project" specifies a
+	  unique configuration for an Embedded Linux project.
+
+config PROJECT_VERSION
+	string
+	prompt "Project Version"
+	default "-${PTXDIST_BSP_AUTOVERSION}"
+	help
+	  The version of your project.
+	  The string is supposed to start with a "-".
+
+comment "------------------------------------"
+comment "pre-built package handling"
+comment "------------------------------------"
+
+config PROJECT_CREATE_DEVPKGS
+	bool
+	prompt "create pre-built archives"
+	help
+	  Enable the creation of pre-built package archives. Read the
+	  "How to become a PTXdist Guru" documentation for further details.
+
+config PROJECT_USE_DEVPKGS
+	bool
+	select HOST_CHRPATH
+	prompt "use pre-built archives"
+	help
+	  Use pre-built package archives to build or re-build the project if
+	  corresponding package archives with the same configuration are found.
+
+config PROJECT_DEVPKGDIR
+	string
+	prompt "pre-built archive directory"
+	depends on PROJECT_USE_DEVPKGS
+	default "/opt/OSELAS.BSP/${PTXCONF_PROJECT_VENDOR}/OSELAS.BSP-${PTXCONF_PROJECT_VENDOR}-${PTXCONF_PROJECT}${PTXCONF_PROJECT_VERSION}"
+	help
+	  This entry defines the path to a directory where pre-built archives
+	  are expected.
+
+config PROJECT_DEVMIRROR
+	string
+	prompt "Mirror for pre-built archives"
+	depends on PROJECT_USE_DEVPKGS
+	help
+	  Enter a URL where *-dev.tar.gz packages can be downloaded
+	  Use: ptxdist getdev
+
+comment "------------------------------------"
+comment "license information handling"
+comment "------------------------------------"
+
+config PROJECT_CHECK_LICENSES
+	bool
+	prompt "check licenses during normal build"
+	help
+	  If this is enabled <pkg>.report is build during the normal build
+	  process. As a result all specified md5 sums for license files are
+	  verified.
+endmenu

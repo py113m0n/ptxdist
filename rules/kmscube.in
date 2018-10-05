@@ -1,0 +1,10 @@
+## SECTION=multimedia_libs
+
+config KMSCUBE
+	bool
+	prompt "kmscube"
+	select MESALIB
+	select MESALIB_GLES2
+	select LIBDRM
+	help
+	  kmscube is an application to test kms/drm drivers.

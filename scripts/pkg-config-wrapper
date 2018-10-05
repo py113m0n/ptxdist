@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+basedir="$(basename "$(dirname "$(dirname "$0")")")"
+
+declare -a prefix
+if [ "${basedir}" = "sysroot-cross" ]; then
+    sysroot="$(dirname "$(dirname "$(dirname "$0")")")/sysroot-target"
+    prefix="${sysroot}/usr"
+    whitelist="${PKGCONFIG_WHITELIST_TARGET}"
+elif [ "${basedir}" = "sysroot-host" ]; then
+    sysroot="$(dirname "$(dirname "$0")")"
+    prefix="${sysroot}"
+    whitelist="${PKGCONFIG_WHITELIST_HOST}"
+else
+    echo "$(basename ${0}): failed to determine prefix" >&2
+    exit 1
+fi
+
+declare -a libdir system_path system_incpath
+libdir=( "${prefix/%//lib/pkgconfig}" "${prefix/%//share/pkgconfig}" )
+system_libpath=( "${libdir[@]/%//../../lib}" "${libdir[@]/%//../lib}" "/usr/lib" "/lib" )
+system_incpath=( "${libdir[@]/%//../../include}" "${libdir[@]/%//../include}" "/usr/include" "/include" )
+
+orig_IFS="${IFS}"
+IFS=":"
+# default pkg-config searchs
+export PKG_CONFIG_LIBDIR="${libdir[*]}"
+# default search path that will be dropped from --cflags
+export PKG_CONFIG_SYSTEM_LIBRARY_PATH="${system_libpath[*]}"
+# default search path that will be dropped from --libs
+export PKG_CONFIG_SYSTEM_INCLUDE_PATH="${system_incpath[*]}"
+IFS="${orig_IFS}"
+
+for ((i = 1; i <= ${#}; i++)); do
+    case "${!i}" in
+	--variable*)
+	    found_var=true
+	    break
+	    ;;
+	*)
+	    ;;
+    esac
+done
+
+#
+# this sed will sanitize pkg-config's output. it will remove:
+#
+# "/usr/lib/pkgconfig/../../.."
+# "/lib/pkgconfig/../.."
+#
+declare -a args
+args=( \
+    "-e" "s~/usr/lib/pkgconfig/\.\./\.\./\.\.~~g" \
+    "-e" "s~/lib/pkgconfig/\.\./\.\.~~g" \
+    )
+
+if [ -n "${PTXDIST_PKG_CONFIG_VAR_NO_SYSROOT}" -a \
+    -n "${found_var}" ]; then
+    #
+    # remove sysroot for variables that return a path
+    #
+    args[${#args[@]}]="-e"
+    args[${#args[@]}]="s~^${sysroot}/~/~"
+fi
+
+check_pipe_status() {
+	for _pipe_status in "${PIPESTATUS[@]}"; do
+		if [ ${_pipe_status} -ne 0 ]; then
+			return ${_pipe_status}
+		fi
+	done
+}
+
+if [ -n "${PKGCONFIG_WHITELIST_SRC}" ]; then
+    pkgs="$(pkg-config.real --print-provides "${@}" 2>/dev/null | awk '{print $1}' && check_pipe_status)" &&
+    for pkg in ${pkgs}; do
+	if [[ ! " ${whitelist} " =~ " ${pkg} " && ! "${pkg}" =~ '-uninstalled' ]]; then
+	    echo "$(basename ${0}): warning: blocking '${pkg}': not selected by '${PKGCONFIG_WHITELIST_SRC}'" >&2
+	    exit 1
+	fi
+    done
+fi
+pkg-config.real "${@}" | sed "${args[@]}"
+check_pipe_status

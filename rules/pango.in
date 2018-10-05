@@ -1,0 +1,21 @@
+## SECTION=multimedia_gtk
+
+menuconfig PANGO
+	tristate
+	prompt "pango                         "
+	select LIBC_M
+	select CAIRO
+	select CAIRO_FREETYPE
+	select CAIRO_GOBJECT		if PANGO_INTROSPECTION
+	select FRIBIDI
+	select GLIB
+	select GOBJECT_INTROSPECTION	if PANGO_INTROSPECTION
+	select HARFBUZZ
+
+if PANGO
+
+config PANGO_INTROSPECTION
+	bool
+	default GOBJECT_INTROSPECTION_HELPER
+
+endif
